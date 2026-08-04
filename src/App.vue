@@ -164,24 +164,23 @@ function delete_current() {
 <template>
   <div class="app-shell">
     <header class="app-header">
-      <div class="brand-text">
-        <p class="eyebrow">AniBT</p>
-        <h1>Torrent Parser</h1>
-        <p class="subtitle">在线解析与编辑 BitTorrent 种子 · 支持 v1 / v2 / Hybrid</p>
-      </div>
+      <h1 class="brand-title">
+        <span class="brand-muted">AniBT</span>
+        <span class="brand-sep" aria-hidden="true">/</span>
+        Torrent Parser
+      </h1>
 
       <div class="header-actions">
         <button
           type="button"
-          class="btn-ghost"
+          class="btn-ghost btn-compact"
           :title="`主题：${themeLabel}（点击切换）`"
           :aria-label="`切换主题，当前：${themeLabel}`"
           @click="cyclePreference"
         >
           <span aria-hidden="true">{{ themeIcon }}</span>
-          <span class="theme-label">{{ themeLabel }}</span>
         </button>
-        <button type="button" class="btn-ghost" @click="is_show_about = !is_show_about">
+        <button type="button" class="btn-ghost btn-compact" @click="is_show_about = !is_show_about">
           About
         </button>
       </div>
@@ -361,60 +360,56 @@ function delete_current() {
 
 <style scoped>
 .app-shell {
-  width: min(1120px, 100%);
+  width: min(1080px, 100%);
   margin: 0 auto;
-  padding: clamp(1.5rem, 4vw, 3rem) var(--space) clamp(2.5rem, 6vw, 4rem);
+  padding: 0.65rem 0.85rem 1.5rem;
   display: grid;
-  gap: clamp(1.1rem, 2vw, 1.6rem);
+  gap: 0.75rem;
 }
 
 .app-header {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
-  padding: 0.5rem 0 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  gap: 0.75rem;
+  min-height: 2.25rem;
+  padding: 0.15rem 0;
 }
 
-.brand-text {
-  min-width: 0;
-}
-
-.eyebrow {
-  margin: 0 0 0.35rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--mauve);
-}
-
-.brand-text h1 {
+.brand-title {
   margin: 0;
-  font-size: clamp(1.75rem, 3.5vw, 2.35rem);
-  line-height: 1.15;
-  letter-spacing: -0.03em;
-  font-weight: 750;
+  min-width: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.subtitle {
-  margin: 0.55rem 0 0;
-  max-width: 36rem;
-  color: var(--text-secondary);
-  font-size: 1rem;
-  line-height: 1.55;
+.brand-muted {
+  color: var(--mauve);
+  font-weight: 700;
+}
+
+.brand-sep {
+  margin: 0 0.35rem;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.4rem;
   flex-shrink: 0;
 }
 
-.theme-label {
+.header-actions :deep(.btn-compact),
+.header-actions .btn-compact {
+  padding: 0.3rem 0.65rem;
   font-size: 0.88rem;
 }
 
@@ -423,7 +418,7 @@ function delete_current() {
   border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
-  padding: clamp(1.1rem, 2vw, 1.5rem);
+  padding: 0.85rem 1rem;
 }
 
 .panel-head {
@@ -496,29 +491,29 @@ function delete_current() {
 }
 
 .empty-panel {
-  padding: clamp(3rem, 8vw, 5rem) 1.25rem;
+  padding: 2rem 1rem;
 }
 
 .empty-state {
   text-align: center;
-  max-width: 32rem;
+  max-width: 28rem;
   margin: 0 auto;
   display: grid;
-  gap: 0.85rem;
+  gap: 0.55rem;
   justify-items: center;
 }
 
 .empty-state h2 {
   margin: 0;
-  font-size: clamp(1.3rem, 2.5vw, 1.55rem);
+  font-size: 1.15rem;
   letter-spacing: -0.02em;
 }
 
 .empty-state p {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.35rem;
   color: var(--text-secondary);
-  font-size: 1rem;
-  line-height: 1.65;
+  font-size: 0.92rem;
+  line-height: 1.55;
 }
 
 .empty-state code {
@@ -529,7 +524,7 @@ function delete_current() {
 
 .content-panel {
   display: grid;
-  gap: 1.25rem;
+  gap: 0.85rem;
 }
 
 .tabs {
@@ -578,8 +573,8 @@ function delete_current() {
 
 .meta-card {
   display: grid;
-  gap: 0.75rem;
-  padding: 1.15rem 1.25rem;
+  gap: 0.45rem;
+  padding: 0.75rem 0.9rem;
   border-radius: var(--radius-sm);
   background: var(--bg);
   border: 1px solid var(--border);
@@ -672,9 +667,9 @@ function delete_current() {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding: 0.75rem 0.1rem 0;
+  padding: 0.15rem 0.1rem 0;
   color: var(--text-muted);
-  font-size: 0.88rem;
+  font-size: 0.8rem;
 }
 
 .toast {
@@ -705,18 +700,9 @@ function delete_current() {
 }
 
 @media (max-width: 720px) {
-  .app-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-
-  .header-actions {
-    justify-content: flex-start;
-  }
-
-  .theme-label {
-    display: none;
+  .app-shell {
+    padding: 0.5rem 0.65rem 1.25rem;
+    gap: 0.6rem;
   }
 
   .about-grid {
