@@ -1,13 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
   <meta charset="UTF-8">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Online torrent file parser and editor">
+  <meta name="description" content="AniBT Torrent Parser — online torrent file parser and editor">
   <meta name="color-scheme" content="light dark">
-  <title>Torrent Parser</title>
+  <meta name="theme-color" content="#4f46e5">
+  <title>Torrent Parser · AniBT</title>
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('torrent-parser_theme');
+        var pref = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+        var resolved = pref === 'system'
+          ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : pref;
+        var root = document.documentElement;
+        root.dataset.theme = resolved;
+        root.style.colorScheme = resolved;
+      } catch (e) {}
+    })();
+  </script>
 </head>
 
 <body>
