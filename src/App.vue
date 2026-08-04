@@ -1,16 +1,23 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 import RecursiveComponent from '@/components/RecursiveComponent.vue'
 import { useTheme } from '@/composables/useTheme'
 import { useMainStore } from '@/stores/mainStore'
 import { Torrent, Torrent_format } from '@/torrent'
-import { copy_to_clipboard } from '@/utils'
+import {
+  copy_to_clipboard,
+  filenameFromResponse,
+  getTorrentUrlFromLocation,
+} from '@/utils'
 
 const is_show_about = ref(false)
 const toast = ref('')
+const remote_loading = ref(false)
 let toastTimer: ReturnType<typeof setTimeout> | undefined
+/** 避免同一 URL 被 hashchange / 初始化重复加载 */
+let lastLoadedRemoteUrl: string | null = null
 
 const original_repo = 'https://github.com/op200/torrent-parser'
 const anibt_repo = 'https://github.com/AniBT-Net/torrent-parser'
@@ -62,13 +69,67 @@ watch(
   { immediate: true, deep: true },
 )
 
-function showToast(msg: string) {
+function showToast(msg: string, ms = 1800) {
   toast.value = msg
   if (toastTimer) clearTimeout(toastTimer)
   toastTimer = setTimeout(() => {
     toast.value = ''
-  }, 1800)
+  }, ms)
 }
+
+/**
+ * 通过远程 URL 加载 .torrent（浏览器直连，目标站必须开 CORS）。
+ * 用法：https://parser.anibt.net#url=<url_to_torrent>
+ */
+async function loadTorrentFromUrl(url: string, opts: { force?: boolean } = {}) {
+  if (!opts.force && lastLoadedRemoteUrl === url) return
+  lastLoadedRemoteUrl = url
+  remote_loading.value = true
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      credentials: 'omit',
+      cache: 'no-cache',
+    })
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} ${res.statusText || ''}`.trim())
+    }
+    const buf = await res.arrayBuffer()
+    if (buf.byteLength === 0) throw new Error('空文件')
+
+    const name = filenameFromResponse(url, res)
+    torrent_list.value.push(new Torrent(buf, name))
+    current_torrent_list_index.value = torrent_list.value.length - 1
+    showToast(`已从 URL 加载：${name}`)
+  } catch (err) {
+    console.error('load torrent from url failed', url, err)
+    const msg = err instanceof Error ? err.message : String(err)
+    const corsHint =
+      /Failed to fetch|NetworkError|CORS|blocked/i.test(msg) || msg === 'Failed to fetch'
+        ? '（可能被 CORS 拦截，目标站需允许跨域）'
+        : ''
+    showToast(`远程加载失败：${msg}${corsHint}`, 4200)
+    // 失败后允许用户改 hash 重试同一 URL
+    if (lastLoadedRemoteUrl === url) lastLoadedRemoteUrl = null
+  } finally {
+    remote_loading.value = false
+  }
+}
+
+function tryLoadFromLocation() {
+  const url = getTorrentUrlFromLocation()
+  if (url) void loadTorrentFromUrl(url)
+}
+
+onMounted(() => {
+  tryLoadFromLocation()
+  window.addEventListener('hashchange', tryLoadFromLocation)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('hashchange', tryLoadFromLocation)
+})
 
 async function add_torrents() {
   const input = document.createElement('input')
@@ -235,12 +296,30 @@ function delete_current() {
             导出的 torrent 可能变成非法格式。需要重新保存 BT v2 / Hybrid 种子时，可先使用此功能。
           </p>
         </article>
+
+        <article class="about-card about-card-wide">
+          <h3>从 URL 打开种子</h3>
+          <p>
+            支持地址栏参数（浏览器直连下载，
+            <strong>目标站必须允许 CORS</strong>）：
+          </p>
+          <p class="mono about-code">
+            {{ parser_site }}#url=&lt;url_to_torrent&gt;
+          </p>
+          <p class="about-note">
+            建议对 URL 做 <code>encodeURIComponent</code>，例如
+            <code>#url=https%3A%2F%2Fexample.com%2Fa.torrent</code>。
+            也支持 <code>?url=</code> 查询参数。
+          </p>
+        </article>
       </div>
     </section>
 
     <section class="panel toolbar-panel">
       <div class="toolbar">
-        <button type="button" @click="add_torrents">Add torrent</button>
+        <button type="button" :disabled="remote_loading" @click="add_torrents">
+          {{ remote_loading ? 'Loading…' : 'Add torrent' }}
+        </button>
         <button type="button" class="btn-secondary" @click="console.info(torrent_list)">
           Print list
         </button>
@@ -472,6 +551,22 @@ function delete_current() {
   border-radius: 5px;
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+.about-code {
+  margin: 0.55rem 0 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.88rem;
+  overflow-x: auto;
+}
+
+.about-note {
+  margin: 0.55rem 0 0 !important;
+  font-size: 0.88rem !important;
 }
 
 .link-list {
