@@ -1,5 +1,8 @@
-# Cloudflare Pages configuration
-# Dashboard Git integration can use these as defaults when present.
+# Cloudflare Workers (static assets) / Git integration
+# Dashboard Deploy command: npx wrangler deploy
 name = "torrent-parser"
 compatibility_date = "2026-03-01"
-pages_build_output_dir = "dist"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
