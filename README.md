@@ -11,6 +11,19 @@
 - 生产构建关闭 Vue DevTools；静态资源按 Vue / bencode 分 chunk，便于缓存
 - localStorage 持久化带 debounce，避免编辑大种子时频繁 re-encode
 
+## 工具链版本
+
+| 工具 | 版本 | 说明 |
+| --- | --- | --- |
+| Vite | 8.x | 已使用最新 |
+| Vue | 3.5.x | 已使用最新 |
+| Pinia | 4.x | 已使用最新 |
+| TypeScript | **6.0.x** | 当前 Vue 工具链可用的最新主版本 |
+| vue-tsc | 3.3.x | 类型检查 |
+
+**关于 TypeScript 7：** 目前 `vue-tsc` 尚未支持 TS 7（会报 `typescript/lib/tsc` 无法 resolve，见 [vuejs/language-tools#6124](https://github.com/vuejs/language-tools/issues/6124) / [#5381](https://github.com/vuejs/language-tools/issues/5381)）。  
+等官方支持后，把 `typescript` 升到 7 即可。
+
 ## 开发
 
 ```bash
