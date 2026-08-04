@@ -360,9 +360,10 @@ function delete_current() {
 
 <style scoped>
 .app-shell {
-  width: min(1080px, 100%);
-  margin: 0 auto;
-  padding: 0.65rem 0.85rem 1.5rem;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0.65rem clamp(1rem, 2.5vw, 2rem) 1.5rem;
   display: grid;
   gap: 0.75rem;
 }
