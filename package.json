@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=25.6.1"
+    "node": ">=20"
   },
   "scripts": {
     "dev": "vite",
@@ -14,6 +14,11 @@
     "type-check": "vue-tsc --build"
   },
   "packageManager": "pnpm@10.32.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
   "dependencies": {
     "bencode": "4.0.0",
     "buffer": "6.0.3",

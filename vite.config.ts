@@ -20,5 +20,6 @@ export default defineConfig({
   optimizeDeps: {
     include: ['buffer'],
   },
-  base: process.env.NODE_ENV === 'production' ? '/torrent-parser/' : '/',
+  // Cloudflare Pages / custom domain is served from site root
+  base: '/',
 })
