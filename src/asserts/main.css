@@ -1,62 +1,74 @@
-/* ========== Design tokens ========== */
+/* Official Catppuccin palette: https://catppuccin.com/palette/ */
+@import '@catppuccin/palette/css/catppuccin.css';
+
+/*
+  Semantic tokens map onto flavors:
+  light → Latte, dark → Mocha
+*/
 :root,
 [data-theme='light'] {
-  --bg: #f4f5f8;
-  --bg-elevated: #ffffff;
-  --bg-muted: #eef0f5;
-  --bg-hover: #e8eaf0;
-  --border: #d8dce6;
-  --border-strong: #c2c8d6;
-  --text: #12141a;
-  --text-secondary: #5b6375;
-  --text-muted: #8b93a7;
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-active: #3730a3;
-  --accent-soft: rgba(79, 70, 229, 0.12);
-  --accent-ring: rgba(79, 70, 229, 0.35);
-  --danger: #dc2626;
-  --danger-soft: rgba(220, 38, 38, 0.1);
-  --success: #059669;
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
-  --shadow-md: 0 8px 24px rgba(16, 24, 40, 0.08);
-  --tree-depth: rgba(79, 70, 229, 0.08);
-  --tree-line: #c5cad8;
-  --input-bg: #ffffff;
-  --input-border: #d0d5e0;
-  --radius: 10px;
-  --radius-sm: 6px;
+  --bg: var(--ctp-latte-base);
+  --bg-elevated: var(--ctp-latte-mantle);
+  --bg-muted: var(--ctp-latte-crust);
+  --bg-hover: var(--ctp-latte-surface0);
+  --border: var(--ctp-latte-surface1);
+  --border-strong: var(--ctp-latte-surface2);
+  --text: var(--ctp-latte-text);
+  --text-secondary: var(--ctp-latte-subtext1);
+  --text-muted: var(--ctp-latte-subtext0);
+  --accent: var(--ctp-latte-blue);
+  --accent-hover: var(--ctp-latte-lavender);
+  --accent-active: var(--ctp-latte-sapphire);
+  --accent-soft: color-mix(in srgb, var(--ctp-latte-blue) 16%, transparent);
+  --accent-ring: color-mix(in srgb, var(--ctp-latte-blue) 32%, transparent);
+  --danger: var(--ctp-latte-red);
+  --danger-soft: color-mix(in srgb, var(--ctp-latte-red) 14%, transparent);
+  --success: var(--ctp-latte-green);
+  --peach: var(--ctp-latte-peach);
+  --mauve: var(--ctp-latte-mauve);
+  --teal: var(--ctp-latte-teal);
+  --yellow: var(--ctp-latte-yellow);
+  --input-bg: var(--ctp-latte-base);
+  --input-border: var(--ctp-latte-surface1);
+  --tree-line: var(--ctp-latte-surface2);
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--ctp-latte-text) 8%, transparent);
+  --shadow-md: 0 18px 44px color-mix(in srgb, var(--ctp-latte-text) 12%, transparent);
+  --radius: 14px;
+  --radius-sm: 8px;
   --font: 'Segoe UI', system-ui, -apple-system, 'PingFang SC', 'Noto Sans SC', sans-serif;
   --mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --space: clamp(1rem, 2.5vw, 2rem);
 }
 
 [data-theme='dark'] {
-  --bg: #0f1117;
-  --bg-elevated: #171a22;
-  --bg-muted: #1e2230;
-  --bg-hover: #262b3a;
-  --border: #2a3040;
-  --border-strong: #3a4258;
-  --text: #eef0f6;
-  --text-secondary: #a8b0c3;
-  --text-muted: #6f7890;
-  --accent: #818cf8;
-  --accent-hover: #a5b4fc;
-  --accent-active: #6366f1;
-  --accent-soft: rgba(129, 140, 248, 0.16);
-  --accent-ring: rgba(129, 140, 248, 0.4);
-  --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.12);
-  --success: #34d399;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.45);
-  --tree-depth: rgba(129, 140, 248, 0.1);
-  --tree-line: #3a4258;
-  --input-bg: #12151d;
-  --input-border: #2f3648;
+  --bg: var(--ctp-mocha-base);
+  --bg-elevated: var(--ctp-mocha-mantle);
+  --bg-muted: var(--ctp-mocha-crust);
+  --bg-hover: var(--ctp-mocha-surface0);
+  --border: var(--ctp-mocha-surface1);
+  --border-strong: var(--ctp-mocha-surface2);
+  --text: var(--ctp-mocha-text);
+  --text-secondary: var(--ctp-mocha-subtext1);
+  --text-muted: var(--ctp-mocha-subtext0);
+  --accent: var(--ctp-mocha-blue);
+  --accent-hover: var(--ctp-mocha-lavender);
+  --accent-active: var(--ctp-mocha-sapphire);
+  --accent-soft: color-mix(in srgb, var(--ctp-mocha-blue) 18%, transparent);
+  --accent-ring: color-mix(in srgb, var(--ctp-mocha-blue) 35%, transparent);
+  --danger: var(--ctp-mocha-red);
+  --danger-soft: color-mix(in srgb, var(--ctp-mocha-red) 16%, transparent);
+  --success: var(--ctp-mocha-green);
+  --peach: var(--ctp-mocha-peach);
+  --mauve: var(--ctp-mocha-mauve);
+  --teal: var(--ctp-mocha-teal);
+  --yellow: var(--ctp-mocha-yellow);
+  --input-bg: var(--ctp-mocha-base);
+  --input-border: var(--ctp-mocha-surface1);
+  --tree-line: var(--ctp-mocha-surface2);
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--ctp-mocha-crust) 70%, transparent);
+  --shadow-md: 0 22px 50px color-mix(in srgb, var(--ctp-mocha-crust) 80%, transparent);
 }
 
-/* ========== Base ========== */
 *,
 *::before,
 *::after {
@@ -71,12 +83,13 @@ body {
   margin: 0;
   min-height: 100dvh;
   font-family: var(--font);
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 16px;
+  line-height: 1.6;
   color: var(--text);
   background:
-    radial-gradient(1200px 500px at 10% -10%, var(--accent-soft), transparent 55%),
-    radial-gradient(900px 400px at 100% 0%, rgba(16, 185, 129, 0.06), transparent 50%),
+    radial-gradient(920px 440px at 6% -10%, color-mix(in srgb, var(--mauve) 14%, transparent), transparent 55%),
+    radial-gradient(820px 380px at 100% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 52%),
+    radial-gradient(720px 340px at 50% 115%, color-mix(in srgb, var(--teal) 10%, transparent), transparent 55%),
     var(--bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -91,8 +104,8 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.45rem 0.9rem;
+  gap: 0.45rem;
+  padding: 0.6rem 1.15rem;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   font: inherit;
@@ -100,7 +113,7 @@ button {
   line-height: 1.3;
   cursor: pointer;
   user-select: none;
-  color: #fff;
+  color: var(--bg);
   background: var(--accent);
   box-shadow: var(--shadow-sm);
   transition:
@@ -171,12 +184,12 @@ button.btn-danger {
 
 button.btn-danger:hover:not(:disabled) {
   background: var(--danger);
-  color: #fff;
+  color: var(--bg);
 }
 
 button.btn-icon {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
   padding: 0;
   border-radius: 999px;
 }
@@ -217,7 +230,6 @@ textarea.content-input:focus {
   background: var(--input-bg);
 }
 
-/* ========== Utilities ========== */
 .mono {
   font-family: var(--mono);
   font-size: 0.92em;

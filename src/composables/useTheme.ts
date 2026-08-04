@@ -13,10 +13,19 @@ function resolveTheme(preference: ThemePreference): ResolvedTheme {
   return preference === 'system' ? getSystemTheme() : preference
 }
 
-function applyTheme(resolved: ResolvedTheme) {
+/** 仅切换 data-theme；颜色来自 @catppuccin/palette CSS（Latte / Mocha） */
+export function applyTheme(resolved: ResolvedTheme) {
   const root = document.documentElement
   root.dataset.theme = resolved
   root.style.colorScheme = resolved
+  root.style.removeProperty('background-color')
+  root.style.removeProperty('color')
+
+  const themeMeta = document.querySelector('meta[name="theme-color"]')
+  if (themeMeta) {
+    // Latte base / Mocha base
+    themeMeta.setAttribute('content', resolved === 'dark' ? '#1e1e2e' : '#eff1f5')
+  }
 }
 
 function readStoredPreference(): ThemePreference {
@@ -29,7 +38,6 @@ function readStoredPreference(): ThemePreference {
   return 'system'
 }
 
-/** Call as early as possible (also duplicated in index.html to avoid FOUC). */
 export function initTheme() {
   applyTheme(resolveTheme(readStoredPreference()))
 }

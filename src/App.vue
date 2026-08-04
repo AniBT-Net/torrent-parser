@@ -164,23 +164,22 @@ function delete_current() {
 <template>
   <div class="app-shell">
     <header class="app-header">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">TP</div>
-        <div class="brand-text">
-          <h1>Torrent Parser</h1>
-          <p>在线解析 / 编辑 · BitTorrent v1 / v2</p>
-        </div>
+      <div class="brand-text">
+        <p class="eyebrow">AniBT</p>
+        <h1>Torrent Parser</h1>
+        <p class="subtitle">在线解析与编辑 BitTorrent 种子 · 支持 v1 / v2 / Hybrid</p>
       </div>
 
       <div class="header-actions">
         <button
           type="button"
-          class="btn-ghost btn-icon"
+          class="btn-ghost"
           :title="`主题：${themeLabel}（点击切换）`"
           :aria-label="`切换主题，当前：${themeLabel}`"
           @click="cyclePreference"
         >
           <span aria-hidden="true">{{ themeIcon }}</span>
+          <span class="theme-label">{{ themeLabel }}</span>
         </button>
         <button type="button" class="btn-ghost" @click="is_show_about = !is_show_about">
           About
@@ -270,7 +269,6 @@ function delete_current() {
 
     <section v-if="!torrent_list.length" class="panel empty-panel">
       <div class="empty-state">
-        <div class="empty-icon" aria-hidden="true"> Tor </div>
         <h2>还没有种子文件</h2>
         <p>选择一个或多个 <code>.torrent</code> 文件，即可查看 info hash、magnet，并编辑字段。</p>
         <button type="button" @click="add_torrents">选择文件</button>
@@ -363,92 +361,95 @@ function delete_current() {
 
 <style scoped>
 .app-shell {
-  max-width: 960px;
+  width: min(1120px, 100%);
   margin: 0 auto;
-  padding: 1.25rem 1rem 2.5rem;
+  padding: clamp(1.5rem, 4vw, 3rem) var(--space) clamp(2.5rem, 6vw, 4rem);
   display: grid;
-  gap: 1rem;
+  gap: clamp(1.1rem, 2vw, 1.6rem);
 }
 
 .app-header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.25rem 0.15rem;
+  gap: 1.5rem;
+  padding: 0.5rem 0 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
+.brand-text {
   min-width: 0;
 }
 
-.brand-mark {
-  flex-shrink: 0;
-  width: 2.6rem;
-  height: 2.6rem;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: #fff;
-  background: linear-gradient(135deg, var(--accent), #10b981);
-  box-shadow: var(--shadow-sm);
+.eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mauve);
 }
 
 .brand-text h1 {
   margin: 0;
-  font-size: 1.2rem;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.75rem, 3.5vw, 2.35rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 750;
+  color: var(--text);
 }
 
-.brand-text p {
-  margin: 0.1rem 0 0;
+.subtitle {
+  margin: 0.55rem 0 0;
+  max-width: 36rem;
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-size: 1rem;
+  line-height: 1.55;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.theme-label {
+  font-size: 0.88rem;
 }
 
 .panel {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
-  padding: 1rem;
+  padding: clamp(1.1rem, 2vw, 1.5rem);
 }
 
 .panel-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.85rem;
+  margin-bottom: 1rem;
 }
 
 .panel-head h2 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
 }
 
 .about-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.85rem;
+  gap: 1rem;
 }
 
 .about-card {
-  background: var(--bg-muted);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 0.9rem 1rem;
+  padding: 1.15rem 1.2rem;
 }
 
 .about-card-wide {
@@ -456,101 +457,94 @@ function delete_current() {
 }
 
 .about-card h3 {
-  margin: 0 0 0.45rem;
-  font-size: 0.95rem;
+  margin: 0 0 0.55rem;
+  font-size: 1rem;
+  color: var(--peach);
 }
 
 .about-card p {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
 }
 
 .about-card code {
   font-family: var(--mono);
   font-size: 0.88em;
-  padding: 0.05em 0.35em;
-  border-radius: 4px;
+  padding: 0.08em 0.4em;
+  border-radius: 5px;
   background: var(--accent-soft);
   color: var(--accent);
 }
 
 .link-list {
-  margin: 0.65rem 0 0;
-  padding-left: 1.1rem;
+  margin: 0.85rem 0 0;
+  padding-left: 1.15rem;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
 }
 
 .link-list li + li {
-  margin-top: 0.3rem;
+  margin-top: 0.4rem;
 }
 
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
+  gap: 0.65rem;
 }
 
 .empty-panel {
-  padding: 2.25rem 1rem;
+  padding: clamp(3rem, 8vw, 5rem) 1.25rem;
 }
 
 .empty-state {
   text-align: center;
-  max-width: 28rem;
+  max-width: 32rem;
   margin: 0 auto;
   display: grid;
-  gap: 0.65rem;
+  gap: 0.85rem;
   justify-items: center;
 }
 
-.empty-icon {
-  width: 3.2rem;
-  height: 3.2rem;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  font-weight: 800;
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
-  color: var(--accent);
-  background: var(--accent-soft);
-}
-
 .empty-state h2 {
-  margin: 0.25rem 0 0;
-  font-size: 1.15rem;
+  margin: 0;
+  font-size: clamp(1.3rem, 2.5vw, 1.55rem);
+  letter-spacing: -0.02em;
 }
 
 .empty-state p {
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.5rem;
   color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.65;
 }
 
 .empty-state code {
   font-family: var(--mono);
   font-size: 0.9em;
+  color: var(--teal);
 }
 
 .content-panel {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.55rem;
 }
 
 .tab {
   max-width: 100%;
-  background: var(--bg-muted);
+  background: var(--bg);
   color: var(--text-secondary);
   border: 1px solid var(--border);
   box-shadow: none;
-  gap: 0.45rem;
+  gap: 0.5rem;
 }
 
 .tab:hover:not(:disabled) {
@@ -568,62 +562,63 @@ function delete_current() {
 .tab-index {
   display: inline-grid;
   place-items: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
+  min-width: 1.3rem;
+  height: 1.3rem;
   border-radius: 999px;
   font-size: 0.75rem;
-  background: color-mix(in srgb, currentColor 16%, transparent);
+  background: color-mix(in srgb, currentColor 14%, transparent);
 }
 
 .tab-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 14rem;
+  max-width: 16rem;
 }
 
 .meta-card {
   display: grid;
-  gap: 0.55rem;
-  padding: 0.9rem 1rem;
+  gap: 0.75rem;
+  padding: 1.15rem 1.25rem;
   border-radius: var(--radius-sm);
-  background: var(--bg-muted);
+  background: var(--bg);
   border: 1px solid var(--border);
 }
 
 .meta-row {
   display: grid;
-  grid-template-columns: 7.5rem minmax(0, 1fr);
-  gap: 0.6rem;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: 0.75rem;
   align-items: center;
 }
 
 .meta-label {
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 600;
 }
 
 .meta-value {
   overflow-wrap: anywhere;
+  font-size: 1rem;
 }
 
 .badge {
   display: inline-flex;
   width: fit-content;
-  padding: 0.15rem 0.55rem;
+  padding: 0.2rem 0.65rem;
   border-radius: 999px;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  color: var(--accent);
-  background: var(--accent-soft);
+  color: var(--teal);
+  background: color-mix(in srgb, var(--teal) 16%, transparent);
 }
 
 .hash-chip {
   justify-content: flex-start;
   width: 100%;
   max-width: 100%;
-  padding: 0.35rem 0.55rem;
+  padding: 0.45rem 0.7rem;
   background: var(--bg-elevated);
   color: var(--text);
   border: 1px solid var(--border);
@@ -643,13 +638,13 @@ function delete_current() {
 .action-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
+  gap: 0.65rem;
 }
 
 .tree-wrap {
   display: grid;
-  gap: 0.65rem;
-  padding-top: 0.25rem;
+  gap: 0.85rem;
+  padding-top: 0.35rem;
   border-top: 1px solid var(--border);
 }
 
@@ -658,17 +653,18 @@ function delete_current() {
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.4rem;
+  gap: 0.5rem;
 }
 
 .tree-head h3 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
 }
 
 .hint {
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: 0.86rem;
 }
 
 .app-footer {
@@ -676,22 +672,22 @@ function delete_current() {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding: 0.25rem 0.15rem;
+  padding: 0.75rem 0.1rem 0;
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: 0.88rem;
 }
 
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 1.4rem;
+  bottom: 1.75rem;
   transform: translateX(-50%);
   z-index: 50;
-  padding: 0.55rem 0.95rem;
+  padding: 0.65rem 1.15rem;
   border-radius: 999px;
   background: var(--text);
   color: var(--bg);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 600;
   box-shadow: var(--shadow-md);
   animation: toast-in 0.18s ease;
@@ -700,7 +696,7 @@ function delete_current() {
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(6px);
+    transform: translateX(-50%) translateY(8px);
   }
   to {
     opacity: 1;
@@ -708,9 +704,19 @@ function delete_current() {
   }
 }
 
-@media (max-width: 640px) {
-  .app-shell {
-    padding: 0.9rem 0.75rem 2rem;
+@media (max-width: 720px) {
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .header-actions {
+    justify-content: flex-start;
+  }
+
+  .theme-label {
+    display: none;
   }
 
   .about-grid {
@@ -719,15 +725,11 @@ function delete_current() {
 
   .meta-row {
     grid-template-columns: 1fr;
-    gap: 0.2rem;
-  }
-
-  .brand-text p {
-    display: none;
+    gap: 0.25rem;
   }
 
   .tab-name {
-    max-width: 9rem;
+    max-width: 10rem;
   }
 }
 </style>

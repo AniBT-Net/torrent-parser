@@ -7,19 +7,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="AniBT Torrent Parser — online torrent file parser and editor">
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#4f46e5">
+  <meta name="theme-color" content="#eff1f5">
   <title>Torrent Parser · AniBT</title>
   <script>
     (function () {
       try {
         var stored = localStorage.getItem('torrent-parser_theme');
         var pref = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
-        var resolved = pref === 'system'
-          ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-          : pref;
+        var dark = pref === 'dark' || (pref === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
         var root = document.documentElement;
-        root.dataset.theme = resolved;
-        root.style.colorScheme = resolved;
+        root.dataset.theme = dark ? 'dark' : 'light';
+        root.style.colorScheme = dark ? 'dark' : 'light';
+        // Catppuccin Mocha / Latte base for first paint
+        root.style.backgroundColor = dark ? '#1e1e2e' : '#eff1f5';
+        root.style.color = dark ? '#cdd6f4' : '#4c4f69';
       } catch (e) {}
     })();
   </script>

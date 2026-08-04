@@ -13,6 +13,9 @@ importers:
 
   .:
     dependencies:
+      '@catppuccin/palette':
+        specifier: ^1.8.0
+        version: 1.8.0
       '@vue/devtools-api':
         specifier: 8.2.1
         version: 8.2.1
@@ -198,6 +201,9 @@ packages:
   '@babel/types@7.29.8':
     resolution: {integrity: sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg==}
     engines: {node: '>=6.9.0'}
+
+  '@catppuccin/palette@1.8.0':
+    resolution: {integrity: sha512-qXhwKiLzQomUygUJYB36YAFgs+dET5bIocfkiaFIatQF5Pwc7L112TlF9P8J5Oqs3x3XTjYSucG0ncHXSCuk7Q==}
 
   '@devframes/hub@0.8.0':
     resolution: {integrity: sha512-0eaxezZG+u/n0GKpf9jVlujBzpOvPKeBbvl/5IWD+p/Yv+1Pr5NaTOQBHvWK3B1M96whylnNdErHwoalcPrHJA==}
@@ -1367,6 +1373,8 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
+
+  '@catppuccin/palette@1.8.0': {}
 
   '@devframes/hub@0.8.0(devframe@0.8.0(srvx@0.12.5))':
     dependencies:
