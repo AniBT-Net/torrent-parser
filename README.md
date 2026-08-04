@@ -4,6 +4,13 @@
 
 **在线使用：** [https://parser.anibt.net/](https://parser.anibt.net/)
 
+## 性能说明
+
+- 使用浏览器原生 **Web Crypto**（SHA-1 / SHA-256）计算 info hash，不再打包 `crypto-js`
+- 使用 `Uint8Array` + 原生 base64，去掉 `buffer` / `path-browserify` polyfill
+- 生产构建关闭 Vue DevTools；静态资源按 Vue / bencode 分 chunk，便于缓存
+- localStorage 持久化带 debounce，避免编辑大种子时频繁 re-encode
+
 ## 开发
 
 ```bash

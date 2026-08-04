@@ -73,7 +73,7 @@ const displayKey = (key: string | number) => {
                     <div class="content-simple">
                         <span class="content-key">{{ displayKey(key) }}:</span>
 
-                        <textarea v-if="new Set<string | number>(['comment']).has(key)" :value="value"
+                        <textarea v-if="key === 'comment'" :value="value"
                             class="content-input"
                             @input="(currentValue as Record<string, any>)[key as string] = ($event.target as HTMLInputElement).value"></textarea>
                         <input v-else type="text" class="content-input" :value="value"

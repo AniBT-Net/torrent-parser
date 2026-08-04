@@ -1,19 +1,48 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { ref } from "vue"
+import { computed, ref, watch } from 'vue'
 
-import RecursiveComponent from "@/components/RecursiveComponent.vue"
+import RecursiveComponent from '@/components/RecursiveComponent.vue'
 import { useMainStore } from '@/stores/mainStore'
-import { Torrent, Torrent_format } from "@/torrent"
+import { Torrent, Torrent_format } from '@/torrent'
 import { copy_to_clipboard } from '@/utils'
 
-const is_show_about = ref<boolean>(false)
-const home_link = "https://github.com/op200/torrent-parser"
+const is_show_about = ref(false)
+const home_link = 'https://github.com/op200/torrent-parser'
 
 const mainStore = useMainStore()
 const { torrent_list } = storeToRefs(mainStore)
 
-const current_torrent_list_index = ref<number>(0)
+const current_torrent_list_index = ref(0)
+
+const current_torrent = computed(() => torrent_list.value[current_torrent_list_index.value])
+
+const hash_v1 = ref('')
+const hash_v2 = ref('')
+const current_format = computed(() => current_torrent.value?.get_format() ?? null)
+const has_piece_layers = computed(() => {
+  const data = current_torrent.value?.data
+  return !!data && typeof data === 'object' && 'piece layers' in data
+})
+
+// Recompute hashes only when the selected torrent identity/data changes
+let hashGen = 0
+watch(
+  current_torrent,
+  async (torrent) => {
+    const gen = ++hashGen
+    if (!torrent) {
+      hash_v1.value = ''
+      hash_v2.value = ''
+      return
+    }
+    const [v1, v2] = await Promise.all([torrent.get_hash_v1(), torrent.get_hash_v2()])
+    if (gen !== hashGen) return
+    hash_v1.value = v1
+    hash_v2.value = v2
+  },
+  { immediate: true, deep: true },
+)
 
 async function add_torrents() {
   const input = document.createElement('input')
@@ -22,18 +51,17 @@ async function add_torrents() {
   input.multiple = true
 
   input.onchange = async (event: Event) => {
-
     const target = event.target as HTMLInputElement
-
     const files = target.files
 
     if (files === null || files.length === 0) {
-      console.error("input torrent -> ", files)
+      console.error('input torrent -> ', files)
       return
     }
 
-    for (const file of Array.from(files))
+    for (const file of Array.from(files)) {
       torrent_list.value.push(new Torrent(await file.arrayBuffer(), file.name))
+    }
 
     current_torrent_list_index.value = torrent_list.value.length - 1
   }
@@ -43,19 +71,18 @@ async function add_torrents() {
 
 function save_torrent(torrent: Torrent | undefined) {
   if (torrent === undefined) {
-    console.error('current torrent obj is null',
-      torrent_list.value[current_torrent_list_index.value])
+    console.error('current torrent obj is null', torrent_list.value[current_torrent_list_index.value])
     return
   }
 
-  const buffer = torrent.encode()
-
-  // 保存为torrent文件作为浏览器下载器导出
-  const blob = new Blob([Uint8Array.from(buffer)], { type: 'application/x-bittorrent' })
+  const bytes = torrent.encode()
+  // Copy into a plain ArrayBuffer so BlobPart typing is happy under strict DOM types
+  const copy = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer
+  const blob = new Blob([copy], { type: 'application/x-bittorrent' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = torrent.filename || "download.torrent"
+  a.download = torrent.filename || 'download.torrent'
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
@@ -63,113 +90,119 @@ function save_torrent(torrent: Torrent | undefined) {
 }
 
 function fake_hybrid_as_v1(torrent: Torrent | undefined): Torrent {
-  if (torrent === undefined)
-    throw new Error('The input file is undefined')
+  if (torrent === undefined) throw new Error('The input file is undefined')
 
   const v1_torrent = new Torrent(torrent.encode(), `fake_as_v1-${torrent.filename}`)
-
-  delete v1_torrent.data["piece layers"]
-  delete v1_torrent.data.info["meta version"]
-  delete v1_torrent.data.info["file tree"]
-
+  delete (v1_torrent.data as any)['piece layers']
+  delete v1_torrent.data.info['meta version']
+  delete v1_torrent.data.info['file tree']
   return v1_torrent
 }
 
 function remove_piece_layers(torrent: Torrent | undefined): Torrent {
-  if (torrent === undefined)
-    throw new Error('The input file is undefined')
+  if (torrent === undefined) throw new Error('The input file is undefined')
 
   const new_torrent = new Torrent(torrent.encode(), `remove_piece_layers-${torrent.filename}`)
-
-  delete new_torrent.data["piece layers"]
-
+  delete (new_torrent.data as any)['piece layers']
   return new_torrent
 }
 
+async function copy_all_magnets() {
+  const magnets = await Promise.all(torrent_list.value.map((t) => t.generate_magnet()))
+  await copy_to_clipboard(magnets.join('\n'))
+}
+
+async function copy_current_magnet() {
+  const t = current_torrent.value
+  if (!t) return
+  await copy_to_clipboard(await t.generate_magnet())
+}
+
+function clear_list() {
+  torrent_list.value.length = 0
+  current_torrent_list_index.value = 0
+}
+
+function delete_current() {
+  torrent_list.value.splice(current_torrent_list_index.value, 1)
+  current_torrent_list_index.value = Math.max(0, current_torrent_list_index.value - 1)
+}
 </script>
 
 <template>
-  <div style="display: grid;gap: 1rem;">
-
+  <div style="display: grid; gap: 1rem">
     <!-- 按钮栏 -->
     <div class="flex-line">
       <button @click="add_torrents">Add torrent</button>
-
       <button @click="console.info(torrent_list)">Print list</button>
-
-      <button @click="torrent_list.length = 0, current_torrent_list_index = 0">Clear list</button>
-
-      <button @click="(() => {
-        torrent_list.splice(current_torrent_list_index, 1)
-        current_torrent_list_index = Math.max(0, current_torrent_list_index - 1)
-      })()" :disabled="!torrent_list.length">Delete current</button>
-
-      <button @click="copy_to_clipboard(torrent_list
-        .map(torrent => torrent.generate_magnet())
-        .join('\n'))" :disabled="!torrent_list.length">Copy all magnet</button>
-
+      <button @click="clear_list">Clear list</button>
+      <button @click="delete_current" :disabled="!torrent_list.length">Delete current</button>
+      <button @click="copy_all_magnets" :disabled="!torrent_list.length">Copy all magnet</button>
       <button @click="is_show_about = !is_show_about">About</button>
     </div>
 
     <!-- About -->
     <div v-show="is_show_about">
       <h2>About</h2>
-      <a :href="home_link" target="_blank">{{ home_link }}</a>
-      <p>Why need the 'Remove piece layers': The 'bencode' has a bug in decoding piece layers, if the 'piece layers' are
-        not removed, the output torrent file format is illegal</p>
+      <a :href="home_link" target="_blank" rel="noopener noreferrer">{{ home_link }}</a>
+      <p>
+        Why need the 'Remove piece layers': The 'bencode' has a bug in decoding piece layers, if the
+        'piece layers' are not removed, the output torrent file format is illegal
+      </p>
     </div>
 
     <!-- 内容展示 -->
-    <div style="border: 1px solid lightgray;padding: 1rem;display: grid;gap: 1rem;" v-show="torrent_list.length > 0">
+    <div
+      style="border: 1px solid lightgray; padding: 1rem; display: grid; gap: 1rem"
+      v-show="torrent_list.length > 0"
+    >
       <!-- 页标 -->
       <div class="flex-line">
-        <button v-for="torrent, i in torrent_list" @click="current_torrent_list_index = i"
-          :class="i === current_torrent_list_index ? 'selected' : ''">
+        <button
+          v-for="(torrent, i) in torrent_list"
+          :key="i"
+          @click="current_torrent_list_index = i"
+          :class="i === current_torrent_list_index ? 'selected' : ''"
+        >
           {{ i + 1 }}. {{ torrent.filename }}
         </button>
       </div>
 
       <!-- 解析信息 -->
-      <div style="display: grid;gap: 0.5rem;">
-        <div>{{ torrent_list[current_torrent_list_index]?.filename }}</div>
-
-        <div>{{ torrent_list[current_torrent_list_index]?.get_format().toString() }}</div>
-
-        <div v-show="torrent_list[current_torrent_list_index]?.get_hash_v1()">Info Hash v1: {{
-          torrent_list[current_torrent_list_index]?.get_hash_v1() }}</div>
-
-        <div v-show="torrent_list[current_torrent_list_index]?.get_hash_v2()">Info Hash v2: {{
-          torrent_list[current_torrent_list_index]?.get_hash_v2() }}</div>
+      <div style="display: grid; gap: 0.5rem">
+        <div>{{ current_torrent?.filename }}</div>
+        <div>{{ current_format }}</div>
+        <div v-show="hash_v1">Info Hash v1: {{ hash_v1 }}</div>
+        <div v-show="hash_v2">Info Hash v2: {{ hash_v2 }}</div>
       </div>
 
       <!-- buttons -->
-      <div style="display: flex;gap: 1rem;">
-        <button @click="copy_to_clipboard(torrent_list[current_torrent_list_index]?.generate_magnet())">Copy
-          magnet</button>
-
-        <button @click="save_torrent(torrent_list[current_torrent_list_index])">Save
-          torrent</button>
-
-        <button v-if="false"
-          :disabled="torrent_list[current_torrent_list_index]?.get_format() !== Torrent_format.hybrid"
-          @click="torrent_list.push(fake_hybrid_as_v1(torrent_list[current_torrent_list_index]))">Fake
-          hybrid → v1</button>
-
-        <button :disabled="(() => {
-          const data = torrent_list[current_torrent_list_index]?.data
-          if (data)
-            return !('piece layers' in data)
-          return true
-        })()" @click="torrent_list.push(remove_piece_layers(torrent_list[current_torrent_list_index]))">Remove piece
-          layers</button>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+        <button @click="copy_current_magnet">Copy magnet</button>
+        <button @click="save_torrent(current_torrent)">Save torrent</button>
+        <button
+          v-if="false"
+          :disabled="current_format !== Torrent_format.hybrid"
+          @click="torrent_list.push(fake_hybrid_as_v1(current_torrent))"
+        >
+          Fake hybrid → v1
+        </button>
+        <button
+          :disabled="!has_piece_layers"
+          @click="torrent_list.push(remove_piece_layers(current_torrent))"
+        >
+          Remove piece layers
+        </button>
       </div>
 
       <!-- 内容 -->
       <div class="content-box">
-        <RecursiveComponent v-if="torrent_list.length > 0" :path="[current_torrent_list_index, 'data']" />
+        <RecursiveComponent
+          v-if="torrent_list.length > 0"
+          :path="[current_torrent_list_index, 'data']"
+        />
       </div>
     </div>
-
   </div>
 </template>
 
@@ -178,7 +211,6 @@ function remove_piece_layers(torrent: Torrent | undefined): Torrent {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  /* padding: 0.4rem 1rem; */
 }
 
 .content-box {

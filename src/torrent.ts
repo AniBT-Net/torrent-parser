@@ -1,127 +1,114 @@
 import bencode from 'bencode'
-import { Buffer } from 'buffer'
-import * as CryptoJS from "crypto-js"
 
-type Primitive = string | number | boolean | null
-type BencodeValue = Primitive | BencodeValue[] | { [key: string]: BencodeValue }
 type Converted<T> = T extends Uint8Array
-    ? string
-    : T extends object
+  ? string
+  : T extends object
     ? { [K in keyof T]: Converted<T[K]> }
     : T
 
+/** Binary fields that must stay as bytes (not UTF-8 text). */
+const BINARY_KEYS = new Set(['pieces', 'pieces root'])
+
 function convert_uint8_arrays<T>(obj: T): Converted<T> {
-    // 处理 Uint8Array
-    if (obj instanceof Uint8Array) {
-        return new TextDecoder('utf-8').decode(obj) as Converted<T>
-    }
+  if (obj instanceof Uint8Array) {
+    return new TextDecoder('utf-8').decode(obj) as Converted<T>
+  }
 
-    // 处理数组
-    if (Array.isArray(obj)) {
-        return obj.map(convert_uint8_arrays) as Converted<T>
-    }
+  if (Array.isArray(obj)) {
+    return obj.map(convert_uint8_arrays) as Converted<T>
+  }
 
-    // 处理普通对象
-    if (obj && typeof obj === 'object') {
-        const result: Record<string, any> = {}
-        for (const key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key))
-                if (new Set(['pieces', 'pieces root']).has(key) || key.length >= 32)
-                    result[key] = obj[key]
-                else
-                    result[key] = convert_uint8_arrays(obj[key])
-        }
-        return result as Converted<T>
+  if (obj && typeof obj === 'object') {
+    const result: Record<string, unknown> = {}
+    for (const key in obj) {
+      if (!Object.prototype.hasOwnProperty.call(obj, key)) continue
+      // Keep piece hashes / roots binary; long keys are typically v2 piece layer digests
+      if (BINARY_KEYS.has(key) || key.length >= 32) result[key] = (obj as Record<string, unknown>)[key]
+      else result[key] = convert_uint8_arrays((obj as Record<string, unknown>)[key])
     }
+    return result as Converted<T>
+  }
 
-    // 基本类型直接返回
-    return obj as Converted<T>
+  return obj as Converted<T>
 }
 
-function buffer_to_word_array(buffer: Buffer): CryptoJS.lib.WordArray {
-    // 使用 CryptoJS 的 Latin1 解析器直接处理字节数据
-    return CryptoJS.enc.Latin1.parse(buffer.toString('latin1'))
+function toUint8Array(data: ArrayBuffer | Uint8Array): Uint8Array {
+  return data instanceof Uint8Array ? data : new Uint8Array(data)
+}
+
+/** Native SHA digest → lowercase hex (faster & smaller than crypto-js). */
+async function digestHex(
+  algorithm: 'SHA-1' | 'SHA-256',
+  data: Uint8Array,
+): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    algorithm,
+    data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer,
+  )
+  const bytes = new Uint8Array(digest)
+  let hex = ''
+  for (let i = 0; i < bytes.length; i++) {
+    hex += bytes[i]!.toString(16).padStart(2, '0')
+  }
+  return hex
 }
 
 export enum Torrent_format {
-    v1 = 'BT v1',
-    v2 = 'BT v2',
-    hybrid = 'BT v2-Hybrid',
+  v1 = 'BT v1',
+  v2 = 'BT v2',
+  hybrid = 'BT v2-Hybrid',
 }
 
 export class Torrent {
-    filename: string
-    data
+  filename: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any
 
-    constructor(buffer: ArrayBuffer | Buffer, filename: string = "") {
-        this.filename = filename
+  constructor(buffer: ArrayBuffer | Uint8Array, filename: string = '') {
+    this.filename = filename
+    this.data = convert_uint8_arrays(bencode.decode(toUint8Array(buffer)))
+  }
 
-        if (buffer instanceof ArrayBuffer)
-            this.data = convert_uint8_arrays(
-                bencode.decode(Buffer.from(buffer))
-            )
-        else
-            this.data = convert_uint8_arrays(
-                bencode.decode(buffer)
-            )
+  get_format(): Torrent_format {
+    if (this.data.info['meta version'] === 2) {
+      if (this.data.info?.files || this.data.info?.length) return Torrent_format.hybrid
+      return Torrent_format.v2
+    }
+    return Torrent_format.v1
+  }
 
-        // if (this.get_format() !== Torrent_format.v1)
-        //     this.data.info["pieces"] = []
+  async get_hash_v1(): Promise<string> {
+    if (this.get_format() === Torrent_format.v2) return ''
+    const encodedInfo = bencode.encode(this.data.info)
+    return digestHex('SHA-1', encodedInfo)
+  }
 
+  async get_hash_v2(): Promise<string> {
+    if (this.get_format() === Torrent_format.v1) return ''
+    const encodedInfo = bencode.encode(this.data.info)
+    return digestHex('SHA-256', encodedInfo)
+  }
+
+  encode(): Uint8Array {
+    return bencode.encode(this.data)
+  }
+
+  async generate_magnet(): Promise<string> {
+    const parts: string[] = []
+
+    switch (this.get_format()) {
+      case Torrent_format.v1:
+        parts.push('xt=urn:btih:' + (await this.get_hash_v1()))
+        break
+      case Torrent_format.v2:
+        parts.push('xt=urn:btmh:1220' + (await this.get_hash_v2()))
+        break
+      case Torrent_format.hybrid:
+        parts.push('xt=urn:btih:' + (await this.get_hash_v1()))
+        parts.push('xt=urn:btmh:1220' + (await this.get_hash_v2()))
+        break
     }
 
-    get_format(): Torrent_format {
-        if (this.data.info["meta version"] === 2)
-            if (this.data.info?.files || this.data.info?.length)
-                return Torrent_format.hybrid
-            else return Torrent_format.v2
-        return Torrent_format.v1
-    }
-
-
-    get_hash_v1(): string {
-        if (this.get_format() === Torrent_format.v2)
-            return ""
-
-        const encodedInfo = bencode.encode(this.data.info)
-        const buffer = Buffer.from(encodedInfo)
-        const wordArray = buffer_to_word_array(buffer)
-        const sha1Hash = CryptoJS.SHA1(wordArray)
-        return sha1Hash.toString(CryptoJS.enc.Hex)
-    }
-
-    get_hash_v2(): string {
-        if (this.get_format() === Torrent_format.v1)
-            return ""
-
-        const encodedInfo = bencode.encode(this.data.info)
-        const buffer = Buffer.from(encodedInfo)
-        const wordArray = buffer_to_word_array(buffer)
-        const sha256Hash = CryptoJS.SHA256(wordArray)
-        return sha256Hash.toString(CryptoJS.enc.Hex)
-    }
-
-    encode(): Buffer<ArrayBufferLike> {
-        return bencode.encode(this.data)
-    }
-
-
-    generate_magnet(): string {
-        const magnet_str_list = Array<string>()
-
-        switch (this.get_format()) {
-            case Torrent_format.v1:
-                magnet_str_list.push('xt=urn:btih:' + this.get_hash_v1())
-                break
-            case Torrent_format.v2:
-                magnet_str_list.push('xt=urn:btmh:1220' + this.get_hash_v2())
-                break
-            case Torrent_format.hybrid:
-                magnet_str_list.push('xt=urn:btih:' + this.get_hash_v1())
-                magnet_str_list.push('xt=urn:btmh:1220' + this.get_hash_v2())
-                break
-        }
-
-        return "magnet:?" + magnet_str_list.join('&')
-    }
+    return 'magnet:?' + parts.join('&')
+  }
 }
